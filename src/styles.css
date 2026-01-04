@@ -1,0 +1,199 @@
+:root {
+    --bg-color: #1e1e24;
+    --sidebar-color: #25252d;
+    --accent-color: #ff5e57;
+    --text-color: #f1f1f1;
+    --secondary-text: #aaaaaa;
+    --input-bg: #2d2d35;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-color);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--accent-color);
+    margin-bottom: 40px;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.menu {
+    list-style: none;
+    padding: 0;
+    flex-grow: 1;
+}
+
+.menu li {
+    padding: 15px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.menu li:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.menu li.active {
+    background-color: var(--accent-color);
+    font-weight: bold;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #ccc;
+    border-radius: 50%;
+    margin-right: 15px;
+    background-image: url('https://mc-heads.net/avatar/Steve');
+    background-size: cover;
+}
+
+/* Main Content */
+.main-content {
+    flex-grow: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.news-container {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.news-item {
+    background-color: var(--sidebar-color);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--accent-color);
+}
+
+.news-item.featured {
+    background: linear-gradient(45deg, var(--sidebar-color), #2d2d3a);
+}
+
+/* Controls */
+.launch-controls {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    background-color: var(--bg-color); /* Cover content behind */
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.control-group label {
+    font-size: 12px;
+    color: var(--secondary-text);
+    margin-bottom: 5px;
+}
+
+input, select {
+    background-color: var(--input-bg);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    width: 150px;
+}
+
+#play-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+    margin-left: auto;
+}
+
+#play-btn:hover {
+    background-color: #ff4742;
+}
+
+#play-btn:active {
+    transform: scale(0.98);
+}
+
+#play-btn:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+/* Status Bar & Console */
+.status-bar {
+    margin-top: 15px;
+    font-size: 14px;
+    color: var(--secondary-text);
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 4px;
+    background-color: #333;
+    margin-top: 5px;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--accent-color);
+    transition: width 0.2s;
+}
+
+.console-output {
+    height: 100px;
+    background-color: #000;
+    color: #0f0;
+    font-family: monospace;
+    font-size: 12px;
+    padding: 10px;
+    margin-top: 10px;
+    overflow-y: auto;
+    border-radius: 5px;
+    display: none; /* Hidden by default */
+}
+
+.console-output.visible {
+    display: block;
+}

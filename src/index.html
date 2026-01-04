@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fenix Clone Launcher</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">FENIX</div>
+        <ul class="menu">
+            <li class="active">Jugar</li>
+            <li>Noticias</li>
+            <li>Configuración</li>
+            <li>Acerca de</li>
+        </ul>
+        <div class="user-profile">
+            <div class="avatar"></div>
+            <div class="username-display">Jugador</div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="news-container">
+            <div class="news-item featured">
+                <h2>Nueva Versión Disponible!</h2>
+                <p>Explora las nuevas características de la versión 1.20.</p>
+            </div>
+            <div class="news-item">
+                <h3>Mantenimiento del Servidor</h3>
+                <p>Estaremos en mantenimiento el próximo martes.</p>
+            </div>
+        </div>
+
+        <div class="launch-controls">
+            <div class="control-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" placeholder="Nombre de usuario" value="Steve">
+            </div>
+            <div class="control-group">
+                <label for="version">Versión</label>
+                <select id="version">
+                    <option value="1.20.1">1.20.1</option>
+                    <option value="1.19.4">1.19.4</option>
+                    <option value="1.18.2">1.18.2</option>
+                    <option value="1.8.9">1.8.9</option>
+                </select>
+            </div>
+            <div class="control-group">
+                 <label for="ram">Memoria (GB)</label>
+                 <select id="ram">
+                    <option value="2G">2 GB</option>
+                    <option value="4G" selected>4 GB</option>
+                    <option value="6G">6 GB</option>
+                    <option value="8G">8 GB</option>
+                 </select>
+            </div>
+            <button id="play-btn">JUGAR</button>
+        </div>
+        <div id="status-bar" class="status-bar">
+            <span id="status-text">Listo para jugar</span>
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+        </div>
+        <div id="console-output" class="console-output"></div>
+    </div>
+    <script src="renderer.js"></script>
+</body>
+</html>
