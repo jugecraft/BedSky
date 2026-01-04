@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const fetch = require('node-fetch');
+const configManager = require('./config');
 
 const launcher = new Client();
 
@@ -32,6 +33,9 @@ app.whenReady().then(() => {
   launcher.on('data', (e) => win.webContents.send('log-data', e + "\n"));
   launcher.on('close', (e) => win.webContents.send('game-closed', e));
 
+  launcher.on('download-status', (e) => win.webContents.send('download-status', e));
+  launcher.on('progress', (e) => win.webContents.send('download-progress', e));
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -46,6 +50,14 @@ app.on('window-all-closed', () => {
 });
 
 // IPC Handlers
+
+ipcMain.on('get-config', (event) => {
+    event.returnValue = configManager.load();
+});
+
+ipcMain.on('save-config', (event, config) => {
+    configManager.save(config);
+});
 
 ipcMain.on('get-versions', async (event) => {
     try {
@@ -69,8 +81,8 @@ ipcMain.on('launch-game', (event, opts) => {
         authorization: auth,
         root: gameRoot,
         version: {
-            number: opts.version,
-            type: "release"
+            number: opts.version.number,
+            type: opts.version.type
         },
         memory: opts.memory,
         javaPath: opts.executablePath !== '' ? opts.executablePath : undefined,

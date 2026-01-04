@@ -19,6 +19,10 @@ const closeSettingsBtn = document.getElementById('close-settings');
 const closeLogsBtn = document.getElementById('close-logs');
 const saveSettingsBtn = document.getElementById('save-settings');
 const logsContent = document.getElementById('logs-content');
+const downloadProgressContainer = document.getElementById('download-progress-container');
+const downloadStatusText = document.getElementById('download-status-text');
+const downloadPercentText = document.getElementById('download-percent-text');
+const downloadProgressBar = document.getElementById('download-progress-bar');
 
 // Settings Inputs
 const inputJavaPath = document.getElementById('settings-java-path');
@@ -31,18 +35,25 @@ const inputJvmArgs = document.getElementById('settings-jvm-args');
 
 // State
 let currentUser = null;
-let currentSettings = {
-    javaPath: '',
-    minMemory: '1G',
-    maxMemory: '4G',
-    width: 1280,
-    height: 720,
-    jvmArgs: ''
-};
+let currentSettings = window.electronAPI.getConfig();
+
+// Initialize UI from Config
+if (currentSettings.username) {
+    loginUsernameInput.value = currentSettings.username;
+}
+// Sync basic UI elements with config
+ramSelect.value = currentSettings.maxMemory || '4G';
+
+function saveCurrentConfig() {
+    window.electronAPI.saveConfig(currentSettings);
+}
 
 // --- View Switching Logic ---
 function showDashboard(username) {
     currentUser = username;
+    currentSettings.username = username;
+    saveCurrentConfig();
+
     displayUsername.textContent = username;
     loginScreen.classList.remove('active');
     dashboardScreen.classList.add('active');
@@ -94,6 +105,7 @@ window.electronAPI.onVersionsList((versions) => {
         if (v.type === 'release' || (showSnapshots && v.type === 'snapshot')) {
             const option = document.createElement('option');
             option.value = v.id;
+            option.dataset.type = v.type;
             option.textContent = `${v.type === 'release' ? 'Release' : 'Snapshot'} ${v.id}`;
             versionSelect.appendChild(option);
         }
@@ -117,9 +129,18 @@ btnLaunch.addEventListener('click', () => {
     logsContent.textContent = "Iniciando...";
     logsOverlay.classList.add('active');
 
+    // Get version type from selected option (we stored it when loading)
+    const selectedOption = versionSelect.options[versionSelect.selectedIndex];
+    // We didn't store the type in the DOM option value directly, but we can infer or store it.
+    // Let's improve loadVersions to store type in dataset.
+    const versionType = selectedOption ? selectedOption.dataset.type : 'release';
+
     const opts = {
         username: currentUser,
-        version: versionSelect.value,
+        version: {
+            number: versionSelect.value,
+            type: versionType
+        },
         memory: {
             min: currentSettings.minMemory,
             max: currentSettings.maxMemory
@@ -129,19 +150,24 @@ btnLaunch.addEventListener('click', () => {
             width: parseInt(currentSettings.width),
             height: parseInt(currentSettings.height)
         },
-        customArgs: currentSettings.jvmArgs ? currentSettings.jvmArgs.split(' ') : []
+        customArgs: currentSettings.jvmArgs ? currentSettings.jvmArgs.split(' ').filter(arg => arg.trim() !== '') : []
     };
 
     window.electronAPI.launchGame(opts);
 });
 
 
-// --- Settings Logic ---
+// --- Tab Switching Logic ---
 const navItems = document.querySelectorAll('.nav-item');
+const contentTabs = document.querySelectorAll('.content-tab');
+
 navItems.forEach(item => {
     item.addEventListener('click', () => {
-        if (item.dataset.tab === 'settings') {
-             // Load current settings into inputs (in a real app, load from IPC)
+        const tabName = item.dataset.tab;
+
+        // Handle Sidebar Navigation
+        if (tabName === 'settings') {
+             // Open Modal (Settings is not a tab anymore in this logic, but a modal)
              inputJavaPath.value = currentSettings.javaPath;
              inputMinMem.value = currentSettings.minMemory;
              inputMaxMem.value = currentSettings.maxMemory;
@@ -150,6 +176,26 @@ navItems.forEach(item => {
              inputJvmArgs.value = currentSettings.jvmArgs;
 
              settingsOverlay.classList.add('active');
+             return;
+        }
+
+        // Handle Main Tabs (Play, News, About)
+        if (['play', 'news', 'about'].includes(tabName)) {
+            // Remove active class from all items and tabs
+            navItems.forEach(nav => nav.classList.remove('active'));
+            contentTabs.forEach(tab => tab.classList.remove('active')); // CSS class for display:block/none
+
+            // Add active class to clicked item
+            item.classList.add('active');
+
+            // Show corresponding content tab
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+                // Ensure display logic matches the CSS (which uses display:none by default and active for display:block)
+                contentTabs.forEach(t => t.style.display = 'none');
+                targetTab.style.display = 'block';
+            }
         }
     });
 });
@@ -160,7 +206,8 @@ closeSettingsBtn.addEventListener('click', () => {
 
 saveSettingsBtn.addEventListener('click', () => {
     // Save to state
-    currentSettings = {
+    const newSettings = {
+        username: currentUser || currentSettings.username,
         javaPath: inputJavaPath.value.trim(),
         minMemory: inputMinMem.value.trim(),
         maxMemory: inputMaxMem.value.trim(),
@@ -168,11 +215,15 @@ saveSettingsBtn.addEventListener('click', () => {
         height: parseInt(inputHeight.value) || 720,
         jvmArgs: inputJvmArgs.value.trim()
     };
+
+    currentSettings = newSettings;
+
     // Sync UI if needed
     ramSelect.value = currentSettings.maxMemory; // Basic sync
 
+    saveCurrentConfig(); // Persist
+
     settingsOverlay.classList.remove('active');
-    // In real app, send 'save-config' IPC
 });
 
 
@@ -188,4 +239,25 @@ window.electronAPI.onLogData((data) => {
 
 window.electronAPI.onGameClosed((code) => {
     logsContent.textContent += `\n[Launcher] El juego se cerró con código: ${code}`;
+});
+
+window.electronAPI.onDownloadStatus((data) => {
+    if (data.type === 'native') return; // Ignore native log lines usually
+
+    // Show container
+    downloadProgressContainer.style.display = 'block';
+    downloadStatusText.textContent = `Descargando: ${data.name || data.type}`;
+});
+
+window.electronAPI.onDownloadProgress((data) => {
+    // data: { task: number, total: number }
+    const percent = Math.round((data.task / data.total) * 100);
+    downloadProgressBar.style.width = `${percent}%`;
+    downloadPercentText.textContent = `${percent}%`;
+
+    if (percent >= 100) {
+        setTimeout(() => {
+             downloadProgressContainer.style.display = 'none';
+        }, 2000);
+    }
 });

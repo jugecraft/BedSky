@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/jugecraft/BedSky#readme",
   "devDependencies": {
-    "electron": "^39.2.7"
+    "electron": "^28.2.0"
   },
   "dependencies": {
     "minecraft-launcher-core": "^3.18.2",

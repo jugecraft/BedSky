@@ -49,6 +49,8 @@
 
     <!-- Main Content Area -->
     <div class="main-content">
+
+      <!-- PLAY TAB -->
       <div id="tab-play" class="content-tab active">
         <h1>Bienvenido, <span id="display-username">Steve</span></h1>
         <p style="color: var(--text-secondary); margin-bottom: 2rem;">Selecciona tu versión y comienza la aventura.</p>
@@ -75,10 +77,36 @@
                 <p style="font-size: 0.9rem; color: var(--text-secondary);">Únete a servidores oficiales de la comunidad.</p>
             </div>
         </div>
-
       </div>
 
-      <!-- Other tabs can be dynamically toggled, or we can just use the settings modal -->
+      <!-- NEWS TAB -->
+      <div id="tab-news" class="content-tab" style="display: none;">
+        <h1>Noticias</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Mantente al día con las últimas novedades.</p>
+
+        <div class="news-item" style="background-color: var(--card-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; margin-bottom: 1rem;">
+            <h3 style="color: var(--accent-color);">Actualización 1.20: Trails & Tales</h3>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">Descubre los nuevos bloques, mobs y biomas en la última gran actualización.</p>
+        </div>
+        <div class="news-item" style="background-color: var(--card-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid #334155;">
+            <h3 style="color: var(--accent-color);">Mantenimiento del Servidor</h3>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">Los servidores de login estarán en mantenimiento el próximo martes.</p>
+        </div>
+      </div>
+
+      <!-- ABOUT TAB -->
+      <div id="tab-about" class="content-tab" style="display: none;">
+        <h1>Acerca de JugeLancher</h1>
+        <div style="background-color: var(--card-bg); padding: 2rem; border-radius: 8px; border: 1px solid #334155; margin-top: 2rem; text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: var(--accent-color); margin-bottom: 1rem;">JugeLancher v1.0</div>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Un launcher de Minecraft moderno, rápido y seguro.</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Desarrollado con Electron y Minecraft Launcher Core.</p>
+            <div style="margin-top: 2rem; border-top: 1px solid #334155; padding-top: 1rem; color: #64748b; font-size: 0.8rem;">
+                &copy; 2023 JugeCraft Team. No afiliado con Mojang ni Microsoft.
+            </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Launch Bar -->
@@ -163,10 +191,21 @@
   <div id="logs-modal-overlay" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h2>Logs del Juego</h2>
+        <h2>Estado del Juego</h2>
         <button id="close-logs" class="close-btn"><span class="material-icons">close</span></button>
       </div>
       <div class="modal-body">
+         <!-- Progress Bar -->
+         <div id="download-progress-container" style="margin-bottom: 1rem; display: none;">
+             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                 <span id="download-status-text" style="color: var(--text-primary);">Iniciando descarga...</span>
+                 <span id="download-percent-text" style="color: var(--text-secondary);">0%</span>
+             </div>
+             <div style="background-color: #334155; height: 10px; border-radius: 5px; overflow: hidden;">
+                 <div id="download-progress-bar" style="background-color: var(--accent-color); height: 100%; width: 0%;"></div>
+             </div>
+         </div>
+
          <div id="logs-content">Esperando inicio del juego...</div>
       </div>
     </div>
