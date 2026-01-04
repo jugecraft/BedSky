@@ -2,114 +2,82 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const fetch = require('node-fetch');
-const fs = require('fs');
 
 const launcher = new Client();
-const configPath = path.join(app.getPath('userData'), 'launcher-config.json');
 
-function createWindow() {
-    const win = new BrowserWindow({
-        width: 1000,
-        height: 700,
-        minWidth: 800,
-        minHeight: 600,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false, // For simple prototype, simpler IPC
-        },
-        backgroundColor: '#1e1e24',
-        title: 'JugeLancher'
-    });
+function createWindow () {
+  const win = new BrowserWindow({
+    width: 1000,
+    height: 700,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    },
+    backgroundColor: '#0b0e14',
+    frame: true
+  });
 
-    win.loadFile('src/index.html');
-    // win.webContents.openDevTools(); // Uncomment for debugging
+  win.loadFile('src/index.html');
+  // win.webContents.openDevTools();
+
+  return win;
 }
 
 app.whenReady().then(() => {
-    createWindow();
+  const win = createWindow();
 
-    app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
-        }
-    });
+  // Launcher Events
+  launcher.on('debug', (e) => win.webContents.send('log-data', e + "\n"));
+  launcher.on('data', (e) => win.webContents.send('log-data', e + "\n"));
+  launcher.on('close', (e) => win.webContents.send('game-closed', e));
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
 });
 
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
 
-// IPC Handling
-ipcMain.handle('get-versions', async () => {
+// IPC Handlers
+
+ipcMain.on('get-versions', async (event) => {
     try {
-        const response = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest.json');
+        const response = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json');
         const data = await response.json();
-        return data.versions;
+        event.reply('versions-list', data.versions);
     } catch (error) {
-        console.error('Failed to fetch versions:', error);
-        return [];
+        event.reply('versions-list', []);
+        console.error("Failed to fetch versions:", error);
     }
 });
 
-ipcMain.handle('get-config', () => {
-    try {
-        if (fs.existsSync(configPath)) {
-            return JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        }
-    } catch (e) {
-        console.error("Error reading config", e);
-    }
-    return {};
-});
+ipcMain.on('launch-game', (event, opts) => {
+    const auth = Authenticator.getAuth(opts.username);
 
-ipcMain.handle('save-config', (event, config) => {
-    try {
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 4));
-        return true;
-    } catch (e) {
-        console.error("Error saving config", e);
-        return false;
-    }
-});
+    // Use userData directory for reliable file access in production
+    const gameRoot = path.join(app.getPath('userData'), 'minecraft_data');
 
-ipcMain.on('launch-game', (event, config) => {
-    const win = BrowserWindow.getAllWindows()[0];
-
-    // Auth setup (Offline mode for this prototype)
-    // MCLC provides Authenticator for Yggdrasil/Microsoft, but we use getAuth for simple offline
-    const authorization = Authenticator.getAuth(config.username);
-
-    const opts = {
+    const launchOptions = {
         clientPackage: null,
-        authorization: authorization,
-        root: path.join(__dirname, '../minecraft'),
+        authorization: auth,
+        root: gameRoot,
         version: {
-            number: config.version.number,
-            type: config.version.type
+            number: opts.version,
+            type: "release"
         },
-        memory: {
-            max: config.memory,
-            min: "2G"
-        }
+        memory: opts.memory,
+        javaPath: opts.executablePath !== '' ? opts.executablePath : undefined,
+        window: opts.window,
+        customArgs: opts.customArgs
     };
 
-    win.webContents.send('log', `Iniciando configuración para versión ${config.version.number} (${config.version.type})...`);
-    win.webContents.send('log', `Directorio de juego: ${opts.root}`);
-
-    launcher.launch(opts).catch(err => {
-        win.webContents.send('error', err.message);
-    });
-
-    launcher.on('debug', (e) => win.webContents.send('log', e));
-    launcher.on('data', (e) => win.webContents.send('log', e));
-
-    launcher.on('progress', (e) => {
-        win.webContents.send('progress', e);
-    });
-
-    launcher.on('close', (code) => {
-        win.webContents.send('game-closed', code);
-    });
+    console.log("Launching with options:", launchOptions);
+    launcher.launch(launchOptions);
 });

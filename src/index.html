@@ -1,71 +1,177 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JugeLancher</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>JugeLancher</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo">JugeLancher</div>
-        <ul class="menu">
-            <li class="active">Jugar</li>
-            <li>Noticias</li>
-            <li>Configuración</li>
-            <li>Acerca de</li>
-        </ul>
-        <div class="user-profile">
-            <div class="avatar"></div>
-            <div class="username-display">Jugador</div>
-        </div>
+
+  <!-- Login Screen -->
+  <div id="login-screen" class="screen active">
+    <div class="login-container">
+      <div class="login-logo">JugeLancher</div>
+      <div class="input-group">
+        <label>Usuario</label>
+        <input type="text" id="login-username" placeholder="Nombre de usuario">
+      </div>
+      <button id="btn-login" class="btn">Entrar</button>
+      <button id="btn-microsoft" class="btn btn-secondary">Microsoft Login</button>
     </div>
+  </div>
+
+  <!-- Dashboard Screen -->
+  <div id="dashboard-screen" class="screen">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="nav-group">
+        <div class="nav-item active" data-tab="play">
+          <span class="material-icons">play_arrow</span> Jugar
+        </div>
+        <div class="nav-item" data-tab="news">
+          <span class="material-icons">article</span> Noticias
+        </div>
+        <div class="nav-item" data-tab="settings">
+          <span class="material-icons">settings</span> Configuración
+        </div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-item" data-tab="about">
+          <span class="material-icons">info</span> Acerca de
+        </div>
+        <div class="nav-item" id="btn-logout">
+          <span class="material-icons">logout</span> Salir
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
     <div class="main-content">
-        <div class="news-container">
-            <div class="news-item featured">
-                <h2>Nueva Versión Disponible!</h2>
-                <p>Explora las nuevas características de la versión 1.20.</p>
+      <div id="tab-play" class="content-tab active">
+        <h1>Bienvenido, <span id="display-username">Steve</span></h1>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Selecciona tu versión y comienza la aventura.</p>
+
+        <div class="dashboard-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <!-- New Version Card -->
+            <div class="card" style="background-color: var(--card-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                <span class="material-icons" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;">new_releases</span>
+                <h3 style="margin-bottom: 0.5rem;">Última Versión</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);">Juega a la última actualización oficial de Mojang.</p>
             </div>
-            <div class="news-item">
-                <h3>Mantenimiento del Servidor</h3>
-                <p>Estaremos en mantenimiento el próximo martes.</p>
+
+            <!-- Maintenance Card -->
+            <div class="card" style="background-color: var(--card-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                <span class="material-icons" style="font-size: 3rem; color: #f59e0b; margin-bottom: 1rem;">build</span>
+                <h3 style="margin-bottom: 0.5rem;">Soporte</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);">¿Tienes problemas? Contacta con el soporte técnico.</p>
+            </div>
+
+             <!-- Multiplayer Card -->
+            <div class="card" style="background-color: var(--card-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                <span class="material-icons" style="font-size: 3rem; color: #10b981; margin-bottom: 1rem;">public</span>
+                <h3 style="margin-bottom: 0.5rem;">Multijugador</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);">Únete a servidores oficiales de la comunidad.</p>
             </div>
         </div>
 
-        <div class="launch-controls">
-            <div class="control-group">
-                <label for="username">Usuario</label>
-                <input type="text" id="username" placeholder="Nombre de usuario" value="Steve">
-            </div>
-            <div class="control-group">
-                <label for="version">Versión</label>
-                <select id="version">
-                    <!-- Populated dynamically -->
-                </select>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="show-snapshots">
-                    <label for="show-snapshots" style="font-size: 10px; margin: 0;">Snapshots</label>
-                </div>
-            </div>
-            <div class="control-group">
-                 <label for="ram">Memoria (GB)</label>
-                 <select id="ram">
-                    <option value="2G">2 GB</option>
-                    <option value="4G" selected>4 GB</option>
-                    <option value="6G">6 GB</option>
-                    <option value="8G">8 GB</option>
-                 </select>
-            </div>
-            <button id="play-btn">JUGAR</button>
-        </div>
-        <div id="status-bar" class="status-bar">
-            <span id="status-text">Listo para jugar</span>
-            <div class="progress-bar-container">
-                <div id="progress-bar" class="progress-bar"></div>
-            </div>
-        </div>
-        <div id="console-output" class="console-output"></div>
+      </div>
+
+      <!-- Other tabs can be dynamically toggled, or we can just use the settings modal -->
     </div>
-    <script src="renderer.js"></script>
+
+    <!-- Launch Bar -->
+    <div class="launch-bar">
+      <div class="launch-info">
+        <label style="color: var(--text-secondary); font-size: 0.8rem;">Versión</label>
+        <select id="version-select">
+          <option value="" disabled selected>Cargando versiones...</option>
+        </select>
+        <div style="margin-top: 5px;">
+           <label style="color: var(--text-secondary); font-size: 0.8rem; margin-right: 10px;">Snapshot</label>
+           <input type="checkbox" id="checkbox-snapshot">
+        </div>
+      </div>
+
+      <div class="launch-info">
+        <label style="color: var(--text-secondary); font-size: 0.8rem;">RAM</label>
+        <select id="ram-select">
+          <option value="2G">2 GB</option>
+          <option value="4G" selected>4 GB</option>
+          <option value="6G">6 GB</option>
+          <option value="8G">8 GB</option>
+        </select>
+      </div>
+
+      <button id="btn-launch" class="btn launch-btn-lg">JUGAR</button>
+    </div>
+  </div>
+
+  <!-- Modals Placeholders (Populated in next steps) -->
+  <div id="settings-modal-overlay" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Configuración Avanzada</h2>
+        <button id="close-settings" class="close-btn"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-grid">
+
+          <!-- Java Path -->
+          <div class="full-width input-group">
+            <label>Ruta de Java (Ejecutable)</label>
+            <div style="display: flex; gap: 10px;">
+               <input type="text" id="settings-java-path" placeholder="Autodetectar (Vacío)">
+               <!-- File picker trigger could go here -->
+            </div>
+          </div>
+
+          <!-- Memory -->
+          <div class="input-group">
+            <label>Memoria Mínima (Ej: 1G)</label>
+            <input type="text" id="settings-min-memory" value="1G">
+          </div>
+          <div class="input-group">
+            <label>Memoria Máxima (Ej: 4G)</label>
+            <input type="text" id="settings-max-memory" value="4G">
+          </div>
+
+          <!-- Resolution -->
+          <div class="input-group">
+            <label>Ancho de Ventana</label>
+            <input type="number" id="settings-width" value="1280">
+          </div>
+          <div class="input-group">
+            <label>Alto de Ventana</label>
+            <input type="number" id="settings-height" value="720">
+          </div>
+
+          <!-- JVM Args -->
+          <div class="full-width input-group">
+            <label>Argumentos JVM</label>
+            <input type="text" id="settings-jvm-args" placeholder="-XX:+UseG1GC ...">
+          </div>
+
+        </div>
+      </div>
+      <div style="margin-top: 1rem; text-align: right;">
+        <button id="save-settings" class="btn" style="width: auto; padding-left: 2rem; padding-right: 2rem;">Guardar</button>
+      </div>
+    </div>
+  </div>
+  <div id="logs-modal-overlay" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Logs del Juego</h2>
+        <button id="close-logs" class="close-btn"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body">
+         <div id="logs-content">Esperando inicio del juego...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
 </body>
 </html>

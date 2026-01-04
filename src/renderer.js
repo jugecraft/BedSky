@@ -1,138 +1,191 @@
-const { ipcRenderer } = require('electron');
+// DOM Elements
+const loginScreen = document.getElementById('login-screen');
+const dashboardScreen = document.getElementById('dashboard-screen');
+const loginUsernameInput = document.getElementById('login-username');
+const btnLogin = document.getElementById('btn-login');
+const btnMicrosoft = document.getElementById('btn-microsoft');
+const btnLogout = document.getElementById('btn-logout');
+const displayUsername = document.getElementById('display-username');
 
-const playBtn = document.getElementById('play-btn');
-const statusText = document.getElementById('status-text');
-const progressBar = document.getElementById('progress-bar');
-const consoleOutput = document.getElementById('console-output');
-const usernameInput = document.getElementById('username');
-const versionSelect = document.getElementById('version');
-const ramSelect = document.getElementById('ram');
-const showSnapshotsCheckbox = document.getElementById('show-snapshots');
+const versionSelect = document.getElementById('version-select');
+const checkboxSnapshot = document.getElementById('checkbox-snapshot');
+const ramSelect = document.getElementById('ram-select');
+const btnLaunch = document.getElementById('btn-launch');
 
-let allVersions = [];
+// Modals
+const settingsOverlay = document.getElementById('settings-modal-overlay');
+const logsOverlay = document.getElementById('logs-modal-overlay');
+const closeSettingsBtn = document.getElementById('close-settings');
+const closeLogsBtn = document.getElementById('close-logs');
+const saveSettingsBtn = document.getElementById('save-settings');
+const logsContent = document.getElementById('logs-content');
 
-// Load Versions on startup
-async function loadVersions() {
-    statusText.textContent = "Cargando versiones...";
-    try {
-        allVersions = await ipcRenderer.invoke('get-versions');
-        renderVersions();
+// Settings Inputs
+const inputJavaPath = document.getElementById('settings-java-path');
+const inputMinMem = document.getElementById('settings-min-memory');
+const inputMaxMem = document.getElementById('settings-max-memory');
+const inputWidth = document.getElementById('settings-width');
+const inputHeight = document.getElementById('settings-height');
+const inputJvmArgs = document.getElementById('settings-jvm-args');
 
-        // Load config after versions are loaded
-        loadConfig();
 
-        statusText.textContent = "Listo para jugar";
-    } catch (err) {
-        statusText.textContent = "Error cargando versiones";
-        console.error(err);
+// State
+let currentUser = null;
+let currentSettings = {
+    javaPath: '',
+    minMemory: '1G',
+    maxMemory: '4G',
+    width: 1280,
+    height: 720,
+    jvmArgs: ''
+};
+
+// --- View Switching Logic ---
+function showDashboard(username) {
+    currentUser = username;
+    displayUsername.textContent = username;
+    loginScreen.classList.remove('active');
+    dashboardScreen.classList.add('active');
+
+    if (versionSelect.options.length <= 1) {
+        loadVersions();
     }
 }
 
-function renderVersions() {
-    versionSelect.innerHTML = '';
-    const showSnapshots = showSnapshotsCheckbox.checked;
+function showLogin() {
+    currentUser = null;
+    dashboardScreen.classList.remove('active');
+    loginScreen.classList.add('active');
+    loginUsernameInput.value = '';
+}
 
-    allVersions.forEach(v => {
+// --- Event Listeners ---
+
+// Login
+btnLogin.addEventListener('click', () => {
+    const username = loginUsernameInput.value.trim();
+    if (username) {
+        showDashboard(username);
+    } else {
+        alert('Por favor introduce un nombre de usuario.');
+    }
+});
+
+// Microsoft Login Placeholder
+btnMicrosoft.addEventListener('click', () => {
+    alert('Próximamente: Inicio de sesión con Microsoft');
+});
+
+// Logout
+btnLogout.addEventListener('click', () => {
+    showLogin();
+});
+
+// Load Versions
+function loadVersions() {
+    window.electronAPI.getVersions();
+}
+
+window.electronAPI.onVersionsList((versions) => {
+    versionSelect.innerHTML = '';
+    const showSnapshots = checkboxSnapshot.checked;
+
+    versions.forEach(v => {
         if (v.type === 'release' || (showSnapshots && v.type === 'snapshot')) {
             const option = document.createElement('option');
             option.value = v.id;
-            option.textContent = v.type === 'snapshot' ? `Snapshot ${v.id}` : v.id;
+            option.textContent = `${v.type === 'release' ? 'Release' : 'Snapshot'} ${v.id}`;
             versionSelect.appendChild(option);
         }
     });
-}
 
-showSnapshotsCheckbox.addEventListener('change', () => {
-    const currentVal = versionSelect.value;
-    renderVersions();
-    // Try to keep selection if possible
-    if (Array.from(versionSelect.options).some(o => o.value === currentVal)) {
-        versionSelect.value = currentVal;
-    } else if (versionSelect.options.length > 0) {
-        versionSelect.value = versionSelect.options[0].value;
+    if (versionSelect.options.length > 0) {
+        versionSelect.selectedIndex = 0;
     }
 });
 
-async function loadConfig() {
-    const config = await ipcRenderer.invoke('get-config');
-    if (config.username) usernameInput.value = config.username;
-    if (config.memory) ramSelect.value = config.memory;
-    if (config.version && config.version.number) {
-        // Ensure the version exists in the list before selecting
-        const savedVersion = config.version.number;
-        if (Array.from(versionSelect.options).some(o => o.value === savedVersion)) {
-            versionSelect.value = savedVersion;
-        }
-    }
-}
+checkboxSnapshot.addEventListener('change', () => {
+    loadVersions();
+});
 
-loadVersions();
 
-playBtn.addEventListener('click', () => {
-    // Find the selected version object to get its type
-    const selectedVersionId = versionSelect.value;
-    const selectedVersionObj = allVersions.find(v => v.id === selectedVersionId);
+// Launch
+btnLaunch.addEventListener('click', () => {
+    if (!currentUser) return;
 
-    const config = {
-        username: usernameInput.value || 'Steve',
-        version: {
-            number: selectedVersionId,
-            type: selectedVersionObj ? selectedVersionObj.type : 'release'
+    // Update logs modal
+    logsContent.textContent = "Iniciando...";
+    logsOverlay.classList.add('active');
+
+    const opts = {
+        username: currentUser,
+        version: versionSelect.value,
+        memory: {
+            min: currentSettings.minMemory,
+            max: currentSettings.maxMemory
         },
-        memory: ramSelect.value
+        executablePath: currentSettings.javaPath || undefined,
+        window: {
+            width: parseInt(currentSettings.width),
+            height: parseInt(currentSettings.height)
+        },
+        customArgs: currentSettings.jvmArgs ? currentSettings.jvmArgs.split(' ') : []
     };
 
-    // Save config
-    ipcRenderer.invoke('save-config', config);
-
-    // Disable button
-    playBtn.disabled = true;
-    playBtn.textContent = 'INICIANDO...';
-    consoleOutput.classList.add('visible');
-    consoleOutput.innerHTML = ''; // Clear logs
-
-    // Send launch signal
-    ipcRenderer.send('launch-game', config);
+    window.electronAPI.launchGame(opts);
 });
 
-// Listen for progress updates
-ipcRenderer.on('progress', (event, data) => {
-    if (data.type === 'natives') {
-        statusText.textContent = `Descargando nativos: ${data.task} (${data.total})`;
-    } else if (data.type === 'classes') {
-        statusText.textContent = `Descargando clases: ${data.task} (${data.total})`;
-    } else if (data.type === 'assets') {
-        statusText.textContent = `Descargando assets: ${data.task} (${data.total})`;
-    }
 
-    // Simple visual progress simulation if data isn't percentage
-    // In a real scenario, we calculate percentage
+// --- Settings Logic ---
+const navItems = document.querySelectorAll('.nav-item');
+navItems.forEach(item => {
+    item.addEventListener('click', () => {
+        if (item.dataset.tab === 'settings') {
+             // Load current settings into inputs (in a real app, load from IPC)
+             inputJavaPath.value = currentSettings.javaPath;
+             inputMinMem.value = currentSettings.minMemory;
+             inputMaxMem.value = currentSettings.maxMemory;
+             inputWidth.value = currentSettings.width;
+             inputHeight.value = currentSettings.height;
+             inputJvmArgs.value = currentSettings.jvmArgs;
+
+             settingsOverlay.classList.add('active');
+        }
+    });
 });
 
-ipcRenderer.on('log', (event, message) => {
-    const line = document.createElement('div');
-    line.textContent = `[LOG] ${message}`;
-    consoleOutput.appendChild(line);
-    consoleOutput.scrollTop = consoleOutput.scrollHeight;
-
-    // Update status text with last log
-    if (message.length < 50) {
-       statusText.textContent = message;
-    }
+closeSettingsBtn.addEventListener('click', () => {
+    settingsOverlay.classList.remove('active');
 });
 
-ipcRenderer.on('game-closed', (event, code) => {
-    playBtn.disabled = false;
-    playBtn.textContent = 'JUGAR';
-    statusText.textContent = `Juego cerrado (Código: ${code})`;
+saveSettingsBtn.addEventListener('click', () => {
+    // Save to state
+    currentSettings = {
+        javaPath: inputJavaPath.value.trim(),
+        minMemory: inputMinMem.value.trim(),
+        maxMemory: inputMaxMem.value.trim(),
+        width: parseInt(inputWidth.value) || 1280,
+        height: parseInt(inputHeight.value) || 720,
+        jvmArgs: inputJvmArgs.value.trim()
+    };
+    // Sync UI if needed
+    ramSelect.value = currentSettings.maxMemory; // Basic sync
+
+    settingsOverlay.classList.remove('active');
+    // In real app, send 'save-config' IPC
 });
 
-ipcRenderer.on('error', (event, err) => {
-    playBtn.disabled = false;
-    playBtn.textContent = 'JUGAR';
-    statusText.textContent = `Error: ${err}`;
-    const line = document.createElement('div');
-    line.style.color = 'red';
-    line.textContent = `[ERROR] ${err}`;
-    consoleOutput.appendChild(line);
+
+// --- Logs Logic ---
+closeLogsBtn.addEventListener('click', () => {
+    logsOverlay.classList.remove('active');
+});
+
+window.electronAPI.onLogData((data) => {
+    logsContent.textContent += data;
+    logsContent.scrollTop = logsContent.scrollHeight;
+});
+
+window.electronAPI.onGameClosed((code) => {
+    logsContent.textContent += `\n[Launcher] El juego se cerró con código: ${code}`;
 });
