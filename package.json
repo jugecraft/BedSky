@@ -5,7 +5,23 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
+    "dist": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "build": {
+    "appId": "com.jugecraft.jugelancher",
+    "productName": "JugeLancher",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Game"
+    }
   },
   "repository": {
     "type": "git",
@@ -20,7 +36,8 @@
   },
   "homepage": "https://github.com/jugecraft/BedSky#readme",
   "devDependencies": {
-    "electron": "^28.2.0"
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.1"
   },
   "dependencies": {
     "minecraft-launcher-core": "^3.18.2",
