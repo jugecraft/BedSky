@@ -18,7 +18,7 @@ function createWindow() {
             contextIsolation: false, // For simple prototype, simpler IPC
         },
         backgroundColor: '#1e1e24',
-        title: 'Fenix Clone Launcher'
+        title: 'JugeLancher'
     });
 
     win.loadFile('src/index.html');
