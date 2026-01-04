@@ -40,11 +40,12 @@
             <div class="control-group">
                 <label for="version">Versión</label>
                 <select id="version">
-                    <option value="1.20.1">1.20.1</option>
-                    <option value="1.19.4">1.19.4</option>
-                    <option value="1.18.2">1.18.2</option>
-                    <option value="1.8.9">1.8.9</option>
+                    <!-- Populated dynamically -->
                 </select>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-snapshots">
+                    <label for="show-snapshots" style="font-size: 10px; margin: 0;">Snapshots</label>
+                </div>
             </div>
             <div class="control-group">
                  <label for="ram">Memoria (GB)</label>

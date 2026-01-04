@@ -1,8 +1,11 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { Client, Authenticator } = require('minecraft-launcher-core');
+const fetch = require('node-fetch');
+const fs = require('fs');
 
 const launcher = new Client();
+const configPath = path.join(app.getPath('userData'), 'launcher-config.json');
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -39,6 +42,38 @@ app.on('window-all-closed', () => {
 });
 
 // IPC Handling
+ipcMain.handle('get-versions', async () => {
+    try {
+        const response = await fetch('https://piston-meta.mojang.com/mc/game/version_manifest.json');
+        const data = await response.json();
+        return data.versions;
+    } catch (error) {
+        console.error('Failed to fetch versions:', error);
+        return [];
+    }
+});
+
+ipcMain.handle('get-config', () => {
+    try {
+        if (fs.existsSync(configPath)) {
+            return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        }
+    } catch (e) {
+        console.error("Error reading config", e);
+    }
+    return {};
+});
+
+ipcMain.handle('save-config', (event, config) => {
+    try {
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 4));
+        return true;
+    } catch (e) {
+        console.error("Error saving config", e);
+        return false;
+    }
+});
+
 ipcMain.on('launch-game', (event, config) => {
     const win = BrowserWindow.getAllWindows()[0];
 
@@ -51,8 +86,8 @@ ipcMain.on('launch-game', (event, config) => {
         authorization: authorization,
         root: path.join(__dirname, '../minecraft'),
         version: {
-            number: config.version,
-            type: "release"
+            number: config.version.number,
+            type: config.version.type
         },
         memory: {
             max: config.memory,
@@ -60,7 +95,7 @@ ipcMain.on('launch-game', (event, config) => {
         }
     };
 
-    win.webContents.send('log', `Iniciando configuración para versión ${config.version}...`);
+    win.webContents.send('log', `Iniciando configuración para versión ${config.version.number} (${config.version.type})...`);
     win.webContents.send('log', `Directorio de juego: ${opts.root}`);
 
     launcher.launch(opts).catch(err => {

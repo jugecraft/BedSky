@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/main.js",
   "scripts": {
+    "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +23,7 @@
     "electron": "^39.2.7"
   },
   "dependencies": {
-    "minecraft-launcher-core": "^3.18.2"
+    "minecraft-launcher-core": "^3.18.2",
+    "node-fetch": "^2.7.0"
   }
 }
